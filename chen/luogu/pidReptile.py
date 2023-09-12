@@ -37,7 +37,6 @@ def getPids(difficultyStr, tagStr, keyword):
 
 
 def initTag():
-    print(len(tag))
     if len(tag) != 0:
         return
     res = requests.get(tagUrl, headers=headers)
@@ -54,4 +53,7 @@ def initTag():
 
 
 if __name__ == "__main__":
-    initTag()
+    totalCount, problems = getPids("入门", "字符串", "")
+    print("共发现{}道题目".format(totalCount))
+    print(problems)
+
