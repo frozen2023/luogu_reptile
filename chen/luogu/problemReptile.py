@@ -5,45 +5,61 @@ import urllib.parse
 import bs4
 import requests
 import os
-from urllib import parse
 
 problemUrl = "https://www.luogu.com.cn/problem/"
 solutionUrl = "https://www.luogu.com.cn/problem/solution/"
+userAgent02 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36 SLBrowser/8.0.1.4031 SLBChan/103"
+userAgent01 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0" \
+                  "Safari/537.36 Edg/116.0.1938.76"
 headers = {
-    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 "
-                  "Safari/537.36 Edg/116.0.1938.76",
+    "user-agent": userAgent02,
     "cookie": "__client_id=d670d45cce0e21ad3e7f30f352487ddb8028277b; _uid=1086745"
 }
 savePath = "D:\\luogu\\problems\\"
+
+defaultDifficulty = ""
 
 exclude = ["\\", '/', ':', '*', '?', '"', '>', '<', '|']
 
 
 # 通过pid获取题目和题解
-def getProblem(pid, title):
+def getProblem(pid, title, d, tags, k):
+
+    # 拼接目录名
+    fatherDir = d
+    for i in tags:
+        fatherDir += '-'
+        fatherDir += i
+    if k != '':
+        fatherDir += "-"
+        fatherDir += k
+
     # 获取题目内容
-    getProblemDetail(pid, title)
+    result = getProblemDetail(pid, title, fatherDir)
+    if result == "error":
+        return "error"
 
     # 获取题解内容
-    getSolutionDetail(pid, title)
+    getSolutionDetail(pid, title, fatherDir)
     print("{}爬取完毕！".format(pid))
 
 
-def getProblemDetail(pid, title):
+def getProblemDetail(pid, title, fatherDir):
     print("正在爬取{}的题目...".format(pid), end="")
     problemHtml = getHTML(problemUrl + str(pid))
     if problemHtml == "error":
         print("爬取失败，可能是不存在该题或无权查看")
+        return "error"
     else:
         problemMD = getMD(problemHtml, "problem")
         print("爬取成功！正在保存...", end="")
         dirName = pid + '-' + title
         fileName = dirName + ".md"
-        saveData(problemMD, dirName, fileName)
+        saveData(problemMD, dirName, fileName, fatherDir)
         print("保存成功!")
 
 
-def getSolutionDetail(pid, title):
+def getSolutionDetail(pid, title, fatherDir):
     print("正在爬取{}的题解...".format(pid), end="")
     solutionHtml = getHTML(solutionUrl + str(pid))
     if solutionHtml == "error":
@@ -53,7 +69,7 @@ def getSolutionDetail(pid, title):
         print("爬取成功！正在保存...", end="")
         dirName = pid + '-' + title
         fileName = dirName + "-题解.md"
-        saveData(solutionMD, dirName, fileName)
+        saveData(solutionMD, dirName, fileName, fatherDir)
         print("保存成功!")
 
 
@@ -93,12 +109,13 @@ def getMD(html, type):
         return "Sorry, there is no solution"
 
 
-def saveData(data, dirName, fileName):
+def saveData(data, dirName, fileName, fatherDir):
     # 规范目录或文件名
     dirName = cleanFileOrDirName(dirName)
     fileName = cleanFileOrDirName(fileName)
+    fatherDir = cleanFileOrDirName(fatherDir)
 
-    dirPath = savePath + dirName
+    dirPath = savePath + fatherDir + "\\" + dirName
     filePath = dirPath + "\\" + fileName
 
     # 判断是否存在文件夹
@@ -120,4 +137,4 @@ def cleanFileOrDirName(name):
 
 
 if __name__ == "__main__":
-    getProblem("P8829", "数独")
+    getProblem("P1001", "数独", "入门", ["字符串"], "hello")
